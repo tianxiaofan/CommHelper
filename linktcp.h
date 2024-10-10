@@ -17,11 +17,20 @@
  ***************************************************************************/
 #pragma once
 
+#include "linkconfig.h"
 #include "linkinterface.h"
 
 #include <QPointer>
 #include <QTcpSocket>
 #include <QTimer>
+
+class LinkTcpConfig : public LinkConfig
+{
+    Q_OBJECT
+public:
+    LinkTcpConfig();
+};
+
 class LinkTcp : public LinkInterface
 {
 public:

@@ -13,6 +13,8 @@ add_subdirectory(tools)
 qt_add_executable(appCommHelper
     linkinterface.cpp
     linkinterface.h
+    linkconfig.cpp
+    linkconfig.h
     linktcp.cpp
     linktcp.h
     main.cpp
