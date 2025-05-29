@@ -16,10 +16,8 @@
  *
  ***************************************************************************/
 #include "linktcp.h"
-#include "tilogger.h"
 
 LinkTcp::LinkTcp() {}
-
 
 bool LinkTcp::connectLink()
 {
@@ -55,17 +53,28 @@ quint64 LinkTcp::writeData(const QByteArray &data)
 QString tcptile = QObject::tr("TCP Link Error");
 void LinkTcp::asyncConnect()
 {
+    QString noset = tr("no config");
+    if (getConfig().isNull()) {
+        emit linkError(tcptile, noset);
+        return;
+    }
+
+    auto tcpConfig = qobject_cast<LinkTcpConfig *>(getConfig().data());
+    if (tcpConfig == nullptr) {
+        emit linkError(tcptile, noset);
+        return;
+    }
+
     //定时器，用于断线重连
     m_reTime.reset(new QTimer());
-    connect(m_reTime.data(), &QTimer::timeout, this, [this]() {
+    connect(m_reTime.data(), &QTimer::timeout, this, [=]() {
         m_tcpSocket->abort();
         m_tcpSocket->close();
-        // LOG_DEBUG() << m_tcpConfig->address().toString() << m_tcpConfig->port();
-        // auto str = QString("%1:%2 ").arg(m_tcpConfig->address().toString()).arg(m_tcpConfig->port());
-        // str = str + tr("connect timeout!");
-        // GlobalInfo::instance()->errorMessage(tr("Link"), str);
+        auto str = QString("%1:%2 ").arg(tcpConfig->address().toString()).arg(tcpConfig->port());
+        str = str + tr("connect timeout!");
+        emit linkError(tcptile, str);
 
-        // m_tcpSocket->connectToHost(m_tcpConfig->address(), m_tcpConfig->port());
+        m_tcpSocket->connectToHost(tcpConfig->address(), tcpConfig->port());
     });
 
     m_tcpSocket.reset(new QTcpSocket());
@@ -78,13 +87,68 @@ void LinkTcp::asyncConnect()
             emit receiveData(this, buffer);
         }
     });
+
     connect(m_tcpSocket.data(),
             &QTcpSocket::errorOccurred,
             this,
-            [this](QAbstractSocket::SocketError error) {
-                emit linkError(tcptile, m_tcpSocket->errorString());
+            [=](QAbstractSocket::SocketError error) {
+                if (!m_reTime->isActive() && tcpConfig->autoConnect()) {
+                    m_reTime->start(tcpConfig->interval());
+                }
+
+                if (m_tcpSocket) {
+                    emit linkError(tcptile, m_tcpSocket->errorString());
+                }
             });
-    connect(m_tcpSocket.data(), &QTcpSocket::connected, this, &LinkTcp::connected);
+
+    connect(m_tcpSocket.data(), &QTcpSocket::connected, this, [=]() {
+        emit connected();
+        if (m_reTime->isActive()) {
+            m_reTime->stop();
+        }
+    });
+
     connect(m_tcpSocket.data(), &QTcpSocket::disconnected, this, &LinkTcp::disconnected);
-    // m_tcpSocket->connectToHost(m_tcpConfig->address(), m_tcpConfig->port());
+    m_tcpSocket->connectToHost(tcpConfig->address(), tcpConfig->port());
 }
+
+QString LinkTcpConfig::ip() const
+{
+    return m_address.toString();
+}
+
+void LinkTcpConfig::setIp(const QString &newIp)
+{
+    QHostAddress test;
+    if (test.setAddress(newIp)) {
+        setAddrerss(test);
+    }
+    emit ipChanged();
+}
+
+quint32 LinkTcpConfig::port() const
+{
+    return m_port;
+}
+
+void LinkTcpConfig::setPort(quint32 newPort)
+{
+    if (m_port == newPort) {
+        return;
+    }
+    m_port = newPort;
+    emit portChanged();
+}
+
+const QHostAddress LinkTcpConfig::address() const
+{
+    return m_address;
+}
+
+void LinkTcpConfig::setAddrerss(const QHostAddress &address)
+{
+    if (m_address != address) {
+        m_address = address;
+    }
+}
+

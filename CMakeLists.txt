@@ -8,7 +8,13 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
-add_subdirectory(tools)
+set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
+set(BUILD_BOTH_LIBS OFF CACHE INTERNAL "")
+set(BUILD_DOCUMENTATION OFF CACHE INTERNAL "")
+set(BUILD_MANPAGES OFF CACHE INTERNAL "")
+add_subdirectory(libs/geographiclib)
+
+add_subdirectory(libs/geos)
 
 qt_add_executable(appCommHelper
     linkinterface.cpp
@@ -17,6 +23,8 @@ qt_add_executable(appCommHelper
     linkconfig.h
     linktcp.cpp
     linktcp.h
+    linkudp.cpp
+    linkudp.h
     main.cpp
 )
 
@@ -39,7 +47,7 @@ set_target_properties(appCommHelper PROPERTIES
 )
 
 target_link_libraries(appCommHelper
-    PRIVATE Qt6::Quick Qt6::Network tools
+    PRIVATE Qt6::Quick Qt6::Network
 )
 
 include(GNUInstallDirs)

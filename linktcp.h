@@ -28,7 +28,24 @@ class LinkTcpConfig : public LinkConfig
 {
     Q_OBJECT
 public:
-    LinkTcpConfig();
+    LinkTcpConfig() {};
+    Q_PROPERTY(QString ip READ ip WRITE setIp NOTIFY ipChanged FINAL)
+    Q_PROPERTY(quint32 port READ port WRITE setPort NOTIFY portChanged FINAL)
+    QString ip() const;
+    void setIp(const QString &newIp);
+    quint32 port() const;
+    void setPort(quint32 newPort);
+    const QHostAddress address() const;
+    void setAddrerss(const QHostAddress &address);
+
+signals:
+    void ipChanged();
+
+    void portChanged();
+
+private:
+    QHostAddress m_address; // 目标地址
+    quint32 m_port;
 };
 
 class LinkTcp : public LinkInterface

@@ -1,0 +1,168 @@
+﻿# This is a basic workflow to help you get started with Actions
+
+name: Windows
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*' # 任何标签都触发
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        include:
+          - qt_ver: 6.7.2
+            qt_arch: win64_msvc2019_64
+            msvc_arch: x64
+            qt_arch_install: msvc2019_64  
+    env:
+      fileName: CommHelper_${{ github.ref_name }}.exe
+      fileNameNoSuffix: CommHelper_${{ github.ref_name }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+          ref: master
+          submodules: recursive
+          
+      - name: Install Dependencies
+        run: |
+          choco install --no-progress sccache ninja -y
+          
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ matrix.qt_ver }}
+          arch: ${{ matrix.qt_arch }}
+          cache: false
+          modules: qtcharts qtlocation qtpositioning qt5compat qtmultimedia qtserialport qtremoteobjects qtshadertools
+      
+      - name: Setup ccache
+        shell: cmd
+        run: |
+          mkdir .sccache
+          sccache --show-stats
+          sccache --start-server
+          setx SCCACHE_GHA_ENABLED true
+          setx SCCACHE_CACHE_SIZE 2G
+          setx SCCACHE_DIR "%GITHUB_WORKSPACE%\.sccache"
+          setx SCCACHE_LOG debug
+          setx SCCACHE_LOG_FILE "%GITHUB_WORKSPACE%\sccache.log"
+          setx SCCACHE_RECACHE true
+          setx SCCACHE_COMPILER_CHECK content
+          setx SCCACHE_COMPRESS true
+          setx SCCACHE_COMPRESS_LEVEL 6
+          set SCCACHE_GHA_ENABLED=true
+          set SCCACHE_CACHE_SIZE=2G
+          set SCCACHE_DIR=%GITHUB_WORKSPACE%\.sccache
+          set SCCACHE_LOG=debug
+          set SCCACHE_LOG_FILE=%GITHUB_WORKSPACE%\sccache.log
+          set SCCACHE_RECACHE=true
+          set SCCACHE_COMPILER_CHECK=content
+          set SCCACHE_COMPRESS=true
+          set SCCACHE_COMPRESS_LEVEL=6
+          echo "SCCACHE_DIR=%SCCACHE_DIR%" >> %GITHUB_ENV%
+          echo "SCCACHE_GHA_ENABLED=%SCCACHE_GHA_ENABLED%" >> %GITHUB_ENV%
+          sccache --show-stats
+          
+      - name: Cache sccache
+        uses: actions/cache@v4
+        id: sccache-cache
+        with:
+          path: .sccache
+          key: sccache-${{ runner.os }}-${{ github.sha }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            sccache-${{ runner.os }}-${{ github.sha }}-
+            sccache-${{ runner.os }}-
+            
+      - name: Cache build directory
+        uses: actions/cache@v4
+        id: build-cache
+        with:
+          path: build/**
+          key: build-${{ runner.os }}-${{ github.sha }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            build-${{ runner.os }}-${{ github.sha }}-
+            build-${{ runner.os }}-
+            
+      - name: msvc-build
+        id: build
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
+          ninja --version
+          if not exist build mkdir build
+          cd build
+          cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -GNinja -S .. -B .
+          cmake --build . --target all --config Release --parallel
+          sccache --show-stats
+          type %GITHUB_WORKSPACE%\sccache.log
+          echo winSdkDir=%WindowsSdkDir% >> %GITHUB_ENV%
+          echo winSdkVer=%WindowsSdkVersion% >> %GITHUB_ENV%
+          echo vcToolsInstallDir=%VCToolsInstallDir% >> %GITHUB_ENV%
+          echo vcToolsRedistDir=%VCToolsRedistDir% >> %GITHUB_ENV%
+          
+      - name: Save cache
+        if: steps.build.outcome == 'success'
+        uses: actions/cache@v4
+        with:
+          path: |
+            .sccache
+            build/**
+          key: ${{ steps.sccache-cache.outputs.cache-primary-key }}-${{ steps.build-cache.outputs.cache-primary-key }}
+          restore-keys: |
+            ${{ steps.sccache-cache.outputs.cache-primary-key }}-${{ steps.build-cache.outputs.cache-primary-key }}
+          
+      - name: inno setup install
+        # 只有以tag触发的操作,才会执行打包,取消后，不管是push还是tag都会执行打包
+#        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: zhuzichu520/inno-setup-action@v1.0.1
+        with:
+          filepath: ./workflows/action-cli/InstallerScript.iss
+          
+      - name: uploadRelease
+        # 只有以tag触发的操作,才会执行release 操作,上传到release
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GH_PAT }}
+          file: ./workflows/action-cli/installer.exe
+          asset_name: ${{ env.fileNameNoSuffix }}_${{ matrix.msvc_arch }}_windows.exe
+          tag: ${{ github.ref }}
+          overwrite: true 
+
+      - name: Save master artifact
+        uses: actions/upload-artifact@master
+        # 只有当master更新时才会触发，tag操作不触发,
+        if: startsWith(github.event.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/')
+        with:
+          name: master
+          path: ./workflows/action-cli/installer.exe
+          retention-days: 1 # 保留1天，因为只有500M的保存空间，每个工件50M
+          compression-level: 0 # 因为上传的是二进行文件，不使用压缩
+          overwrite: true
+
+      - name: Rename the file using CMD
+        # 提交tag触发的操作中... 更改名字，生成以版本号的命名和exe文件
+        if: startsWith(github.event.ref, 'refs/tags/')
+        run: rename ".\workflows\action-cli\installer.exe" ${{ env.fileNameNoSuffix }}_${{ matrix.msvc_arch }}_windows.exe
+        shell: cmd
+
+ 
+

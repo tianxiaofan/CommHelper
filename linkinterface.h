@@ -18,6 +18,10 @@
 
 #pragma once
 #include <QObject>
+#include <QSharedPointer>
+// #include "linkconfig.h"
+
+class LinkConfig;
 
 class LinkInterface : public QObject
 {
@@ -38,6 +42,9 @@ public:
     }
     void writeBytesThreadSafe(const QByteArray &byte);
 
+    void setConfig(QSharedPointer<LinkConfig> config) { m_config = config; }
+    QSharedPointer<LinkConfig> getConfig() const { return m_config; }
+
 protected:
     virtual quint64 writeData(const QByteArray &data) = 0;
 
@@ -51,4 +58,7 @@ signals:
     void disconnected();
     /// 错误信息
     void linkError(const QString &title, const QString &error);
+
+private:
+    QSharedPointer<LinkConfig> m_config;
 };
