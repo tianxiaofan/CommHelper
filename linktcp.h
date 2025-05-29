@@ -67,4 +67,5 @@ protected:
 private:
     QScopedPointer<QTcpSocket> m_tcpSocket;
     QScopedPointer<QTimer> m_reTime;
+    //111
 };
