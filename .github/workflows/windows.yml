@@ -43,7 +43,7 @@ jobs:
           
       - name: Install Dependencies
         run: |
-          choco install --no-progress ninja -y
+          choco install --no-progress sccache ninja -y
           
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
