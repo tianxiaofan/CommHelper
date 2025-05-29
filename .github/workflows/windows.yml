@@ -63,8 +63,6 @@ jobs:
           cd build
           cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Release -GNinja -S .. -B .
           cmake --build . --target all --config Release --parallel
-          sccache --show-stats
-          type %GITHUB_WORKSPACE%\sccache.log
           echo winSdkDir=%WindowsSdkDir% >> %GITHUB_ENV%
           echo winSdkVer=%WindowsSdkVersion% >> %GITHUB_ENV%
           echo vcToolsInstallDir=%VCToolsInstallDir% >> %GITHUB_ENV%
