@@ -14,6 +14,15 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakeconf")
+# include(compiler_conf)
+# 设置生文件存放目录
+include(building_output)
+# windeployqt
+include(Windeployqt)
+#获取 Git 修订说明
+include(GetGitRevisionDescription)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_BOTH_LIBS OFF CACHE INTERNAL "")
 set(BUILD_DOCUMENTATION OFF CACHE INTERNAL "")
