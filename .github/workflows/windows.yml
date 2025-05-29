@@ -53,54 +53,6 @@ jobs:
           cache: false
           modules: qtcharts qtlocation qtpositioning qt5compat qtmultimedia qtserialport qtremoteobjects qtshadertools
       
-      - name: Setup ccache
-        shell: cmd
-        run: |
-          mkdir .sccache
-          sccache --show-stats
-          sccache --start-server
-          setx SCCACHE_GHA_ENABLED true
-          setx SCCACHE_CACHE_SIZE 2G
-          setx SCCACHE_DIR "%GITHUB_WORKSPACE%\.sccache"
-          setx SCCACHE_LOG debug
-          setx SCCACHE_LOG_FILE "%GITHUB_WORKSPACE%\sccache.log"
-          setx SCCACHE_RECACHE true
-          setx SCCACHE_COMPILER_CHECK content
-          setx SCCACHE_COMPRESS true
-          setx SCCACHE_COMPRESS_LEVEL 6
-          set SCCACHE_GHA_ENABLED=true
-          set SCCACHE_CACHE_SIZE=2G
-          set SCCACHE_DIR=%GITHUB_WORKSPACE%\.sccache
-          set SCCACHE_LOG=debug
-          set SCCACHE_LOG_FILE=%GITHUB_WORKSPACE%\sccache.log
-          set SCCACHE_RECACHE=true
-          set SCCACHE_COMPILER_CHECK=content
-          set SCCACHE_COMPRESS=true
-          set SCCACHE_COMPRESS_LEVEL=6
-          echo "SCCACHE_DIR=%SCCACHE_DIR%" >> %GITHUB_ENV%
-          echo "SCCACHE_GHA_ENABLED=%SCCACHE_GHA_ENABLED%" >> %GITHUB_ENV%
-          sccache --show-stats
-          
-      - name: Cache sccache
-        uses: actions/cache@v4
-        id: sccache-cache
-        with:
-          path: .sccache
-          key: sccache-${{ runner.os }}-${{ github.sha }}-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            sccache-${{ runner.os }}-${{ github.sha }}-
-            sccache-${{ runner.os }}-
-            
-      - name: Cache build directory
-        uses: actions/cache@v4
-        id: build-cache
-        with:
-          path: build/**
-          key: build-${{ runner.os }}-${{ github.sha }}-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            build-${{ runner.os }}-${{ github.sha }}-
-            build-${{ runner.os }}-
-            
       - name: msvc-build
         id: build
         shell: cmd
@@ -109,7 +61,7 @@ jobs:
           ninja --version
           if not exist build mkdir build
           cd build
-          cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -GNinja -S .. -B .
+          cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Release -GNinja -S .. -B .
           cmake --build . --target all --config Release --parallel
           sccache --show-stats
           type %GITHUB_WORKSPACE%\sccache.log
@@ -117,17 +69,6 @@ jobs:
           echo winSdkVer=%WindowsSdkVersion% >> %GITHUB_ENV%
           echo vcToolsInstallDir=%VCToolsInstallDir% >> %GITHUB_ENV%
           echo vcToolsRedistDir=%VCToolsRedistDir% >> %GITHUB_ENV%
-          
-      - name: Save cache
-        if: steps.build.outcome == 'success'
-        uses: actions/cache@v4
-        with:
-          path: |
-            .sccache
-            build/**
-          key: ${{ steps.sccache-cache.outputs.cache-primary-key }}-${{ steps.build-cache.outputs.cache-primary-key }}
-          restore-keys: |
-            ${{ steps.sccache-cache.outputs.cache-primary-key }}-${{ steps.build-cache.outputs.cache-primary-key }}
           
       - name: inno setup install
         # 只有以tag触发的操作,才会执行打包,取消后，不管是push还是tag都会执行打包
