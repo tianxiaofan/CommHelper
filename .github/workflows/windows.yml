@@ -53,15 +53,15 @@ jobs:
           use-official: true
           cache: true
           modules: qtcharts qtlocation qtpositioning qt5compat qtmultimedia qtserialport qtremoteobjects qtshadertools
-      
-      - name: Cache CMake build
+     
+      - name: Cache sccache compilation results
         uses: actions/cache@v4
         with:
-          path: build
-          key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+          path: C:\Users\runneradmin\AppData\Local\sccache
+          key: ${{ runner.os }}-sccache-${{ github.run_id }}
           restore-keys: |
-            ${{ runner.os }}-cmake-
-            
+            ${{ runner.os }}-sccache-
+          
       - name: msvc-build
         id: build
         shell: cmd
@@ -71,6 +71,8 @@ jobs:
           if not exist build mkdir build
           cd build
           cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 ^
+                -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+                -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
                 -DCMAKE_C_COMPILER=cl ^
                 -DCMAKE_CXX_COMPILER=cl ^
                 -DCMAKE_BUILD_TYPE=Release ^
