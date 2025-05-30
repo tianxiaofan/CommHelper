@@ -57,7 +57,7 @@ jobs:
       - name: Cache sccache compilation results
         uses: actions/cache@v4
         with:
-          path: C:\Users\runneradmin\AppData\Local\sccache
+          path: C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache
           key: ${{ runner.os }}-sccache-${{ hashFiles('CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
