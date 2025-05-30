@@ -83,6 +83,7 @@ jobs:
           echo winSdkVer=%WindowsSdkVersion% >> %GITHUB_ENV%
           echo vcToolsInstallDir=%VCToolsInstallDir% >> %GITHUB_ENV%
           echo vcToolsRedistDir=%VCToolsRedistDir% >> %GITHUB_ENV%
+          sccache --show-stats
           
       - name: inno setup install
         # 只有以tag触发的操作,才会执行打包,取消后，不管是push还是tag都会执行打包
