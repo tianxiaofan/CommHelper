@@ -54,7 +54,14 @@ jobs:
           cache: true
           modules: qtcharts qtlocation qtpositioning qt5compat qtmultimedia qtserialport qtremoteobjects qtshadertools
       
-      
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-
+            
       - name: msvc-build
         id: build
         shell: cmd
@@ -63,7 +70,13 @@ jobs:
           ninja --version
           if not exist build mkdir build
           cd build
-          cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Release -GNinja -S .. -B .
+          cmake -DCMAKE_PREFIX_PATH=D:\a\CommHelper\Qt\${{ matrix.qt_ver }}\msvc2019_64 ^
+                -DCMAKE_C_COMPILER=cl ^
+                -DCMAKE_CXX_COMPILER=cl ^
+                -DCMAKE_BUILD_TYPE=Release ^
+                -DCMAKE_CXX_FLAGS="/MP" ^
+                -DCMAKE_BUILD_PARALLEL_LEVEL=4 ^
+                -GNinja -S .. -B .
           cmake --build . --target all --config Release --parallel
           echo winSdkDir=%WindowsSdkDir% >> %GITHUB_ENV%
           echo winSdkVer=%WindowsSdkVersion% >> %GITHUB_ENV%
