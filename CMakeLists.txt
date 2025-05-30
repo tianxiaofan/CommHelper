@@ -71,3 +71,9 @@ install(TARGETS appCommHelper
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+# 拷贝qt自身所依赖库
+if(WIN32)
+    windeployqt(appCommHelper "appCommHelper.exe" ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
