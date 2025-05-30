@@ -58,7 +58,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: C:\Users\runneradmin\AppData\Local\sccache
-          key: ${{ runner.os }}-sccache-${{ github.run_id }}
+          key: ${{ runner.os }}-sccache-${{ hashFiles('CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
           
@@ -66,6 +66,7 @@ jobs:
         id: build
         shell: cmd
         run: |
+          sccache --show-stats
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
           ninja --version
           if not exist build mkdir build
