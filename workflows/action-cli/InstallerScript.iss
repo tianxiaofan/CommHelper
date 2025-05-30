@@ -2,12 +2,12 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TUGS"
-#define MyAppVersion "2.2.0"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "西安英杰伟成航空科技有限公司"
 #define MyAppURL ""
-#define MyAppExeName "tugs.exe"
-#define MyAppFileDir "E:/QTCloud/TUGS-Pro/build/Desktop_Qt_6_7_2_MSVC2019_64bit-Debug/build"
-#define MyAppFileIcon "E:/QTCloud/TUGS-Pro/TUGS/resources/app.ico"
+#define MyAppExeName "CommHelper.exe"
+#define MyAppFileDir "E:/TMP/CommHelper/build/Qt_6_7_2_msvc2019_64-Debug/build"
+#define MyAppFileIcon "E:/TMP/CommHelper/resources/app.ico"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.

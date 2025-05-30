@@ -72,6 +72,44 @@ install(TARGETS appCommHelper
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+#如果是Windows平台，则生成rc文件，还有inno setup脚本文件
+set(EXAMPLE_VERSION_RC_PATH "")
+if(WIN32)
+    set(EXAMPLE_VERSION_RC_PATH ${CMAKE_CURRENT_BINARY_DIR}/version_${PROJECT_NAME}.rc)
+    set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/app.ico)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake-in/version_exe.rc.in
+        ${EXAMPLE_VERSION_RC_PATH}
+    )
+
+    set(BUILD_EXE_NAME ${PROJECT_NAME}.exe)
+    set(BUILD_EXE_DIR ${CMAKE_BINARY_DIR}/build)
+    set(BUILD_ICON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources/app.ico)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake-in/InstallerScript.iss.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/workflows/action-cli/InstallerScript.iss
+    )
+endif()
+#如果是Windows平台，则生成rc文件，还有inno setup脚本文件
+set(EXAMPLE_VERSION_RC_PATH "")
+if(WIN32)
+    set(EXAMPLE_VERSION_RC_PATH ${CMAKE_CURRENT_BINARY_DIR}/version_${PROJECT_NAME}.rc)
+    set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/app.ico)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake-in/version_exe.rc.in
+        ${EXAMPLE_VERSION_RC_PATH}
+    )
+
+    set(BUILD_EXE_NAME ${PROJECT_NAME}.exe)
+    set(BUILD_EXE_DIR ${CMAKE_BINARY_DIR}/build)
+    set(BUILD_ICON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources/app.ico)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake-in/InstallerScript.iss.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/workflows/action-cli/InstallerScript.iss
+    )
+endif()
+
+
 # 拷贝qt自身所依赖库
 if(WIN32)
     windeployqt(appCommHelper "appCommHelper.exe" ${CMAKE_CURRENT_SOURCE_DIR})
