@@ -1,14 +1,18 @@
 ﻿cmake_minimum_required(VERSION 3.23)
 
+# 在 project 之前设置 C++ 标准，这样会影响所有子项目
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# 设置这些变量以确保子项目使用相同的 C++ 标准
+set(CMAKE_CXX_STANDARD_DEFAULT 17)
+set(CMAKE_CXX_STANDARD_REQUIRED_DEFAULT ON)
+set(CMAKE_CXX_EXTENSIONS_DEFAULT OFF)
+
 project(CommHelper VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# 支持c++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
 
@@ -27,8 +31,10 @@ set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_BOTH_LIBS OFF CACHE INTERNAL "")
 set(BUILD_DOCUMENTATION OFF CACHE INTERNAL "")
 set(BUILD_MANPAGES OFF CACHE INTERNAL "")
-add_subdirectory(libs/geographiclib)
 
+string(REGEX REPLACE "/W[3|4]" "/w" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+add_subdirectory(libs/geographiclib)
 add_subdirectory(libs/geos)
 
 qt_add_executable(CommHelper

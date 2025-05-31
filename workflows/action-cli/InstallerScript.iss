@@ -6,8 +6,8 @@
 #define MyAppPublisher "西安英杰伟成航空科技有限公司"
 #define MyAppURL ""
 #define MyAppExeName "CommHelper.exe"
-#define MyAppFileDir "E:/TMP/CommHelper/build/Qt_6_7_2_msvc2019_64-Debug/build"
-#define MyAppFileIcon "E:/TMP/CommHelper/resources/app.ico"
+#define MyAppFileDir "D:/qtworkspace/work/CommHelper/build/Desktop_Qt_6_7_2_MSVC2019_64bit-Debug/build"
+#define MyAppFileIcon "D:/qtworkspace/work/CommHelper/resources/app.ico"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
